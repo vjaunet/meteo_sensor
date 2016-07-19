@@ -30,3 +30,6 @@
 
 #emacs
 *.*~
+
+#arduino
+*.cpp.d
