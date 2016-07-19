@@ -33,3 +33,4 @@
 
 #arduino
 *.cpp.d
+build*/
