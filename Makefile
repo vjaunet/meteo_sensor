@@ -4,7 +4,7 @@ BOARD_TAG      = nano
 F_CPU          = 16000000L
 MCU            = atmega328p
 
-ARDUINO_LIBS = SPI Wire Adafruit_BME280 LiquidCrystal_I2C
+ARDUINO_LIBS = SPI Wire Adafruit_BME280 LiquidCrystal_I2C LowPower
 
 PORT=/dev/cu.wchusbserial1420
 AVRDUDE_ARD_BAUDRATE = 57600
