@@ -29,11 +29,6 @@ meteo::meteo()
     }
   }
 
-  // initialize pressure and temp tables
-    for (int8_t i=nRec-1;i>-1;--i){
-      Press_rec[i] = 1e3;
-      Temp_rec[i] = 20.0F;
-    }
 }
 
 /*------ Initialization of Communication ------*/
@@ -57,7 +52,15 @@ bool meteo::initialize()
 
   // Print a message to the LCD in the end of setup to control
   lcd.print("Meteo v0.1");
-  delay(2000);
+
+  // initialize pressure and temp tables
+  float press= bme.readPressure()/100.0F;
+  float temp= bme.readTemperature();
+  for (int8_t i=nRec-1;i>-1;--i){
+    Press_rec[i] = press;
+    Temp_rec[i] = temp;
+  }
+  delay(300);
 
   return true;
 }
@@ -78,17 +81,16 @@ void meteo::get_data()
 /*-------- Storing Data in the flash mem --------*/
 void meteo::store_data()
 {
-  for (uint8_t i=0;i<nRec-2;i++){
+  for (uint8_t i=0;i<nRec-1;i++){
     Press_rec[i]= Press_rec[i+1];
     Temp_rec[i] = Temp_rec[i+1];
   }
-  get_data();
-  Press_rec[nRec-1]=curPressure;
-  Temp_rec[nRec-1]=curTemp;
+  Press_rec[nRec-1]= bme.readPressure()/100.0F;
+  Temp_rec[nRec-1] = bme.readTemperature()-1.0F;;
 }
 
 
-/*--------- Print Functions ------------*/
+/*--------- Display Functions ------------*/
 void meteo::print_temp_hist()
 {
 
@@ -96,7 +98,15 @@ void meteo::print_temp_hist()
 
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("72h Temp Evol:");
+
+  char heading[16];
+  char str_temp_min[5];
+  char str_temp_max[5];
+  dtostrf( minval(Temp_rec), 4, 1, str_temp_min);
+  dtostrf( maxval(Temp_rec), 4, 1, str_temp_max);
+
+  sprintf(heading,"T: %s%cC-%s%cC", str_temp_min,(char)223, str_temp_min,(char)223);
+  lcd.print(heading);
 
   for (uint8_t iChar=0;iChar<nCustomChar;iChar++){
     //Create custom Char in the lcd memory and print
@@ -114,7 +124,15 @@ void meteo::print_pressure_hist()
 
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("72h Press Evol:");
+
+  char heading[16];
+  char str_press_min[8];
+  char str_press_max[8];
+  dtostrf( minval(Press_rec), 6, 1, str_press_min);
+  dtostrf( maxval(Press_rec), 6, 1, str_press_max);
+
+  sprintf(heading,"P: %s-%s", str_press_min, str_press_max);
+  lcd.print(heading);
 
   for (uint8_t iChar=0;iChar<nCustomChar;iChar++){
     //Create custom Char in the lcd memory and print
@@ -123,10 +141,17 @@ void meteo::print_pressure_hist()
     lcd.write(iChar);
   }
   lcd.backlight();
+
 }
 
 void meteo::print_meteo()
 {
+  //Renew the data set in the meteo class
+  get_data();
+
+  char str_temp[6];
+  char str_hum[6];
+  char str_press[8];
   dtostrf( curPressure, 6, 1, str_press);
   dtostrf( curTemp, 5, 2, str_temp);
   dtostrf( curHum, 5, 2, str_hum);
@@ -142,6 +167,7 @@ void meteo::print_meteo()
   lcd.setCursor(0,1);
   lcd.print(str2);
   lcd.backlight();
+
 }
 
 void meteo::turn_off()
@@ -153,14 +179,21 @@ void meteo::turn_off()
 /*-------- Bargraph Creation- --------*/
 void meteo::createBarGraph(float *data)
 {
+
   /* loop in the data array and create
    characters based on the values */
-
-  for (int8_t i=nRec-1;i>-1;--i){
+  for (int8_t i=0;i<nRec;i++){
 
     //Get the 8bit equivalent altitiude of this data
-    uint8_t data_int=
-      constrain((uint8_t) ((data[i]-minval(data))/(maxval(data)-minval(data))*7),0,7);
+    uint8_t data_int=4;
+    float minv=minval(data);
+    float maxv=maxval(data);
+    if (minv != maxv)
+      {
+    	data_int=
+    	  constrain(((data[i]-minv)/(maxv-minv)*7),0,7);
+      }
+
 
     //Set the lcd column to 1 up to the actual value
     for (uint8_t irow=0;irow<(7-data_int);irow++)

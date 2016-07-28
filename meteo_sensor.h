@@ -46,22 +46,20 @@ class meteo
   void print_meteo();
   void print_pressure_hist();
   void print_temp_hist();
-  void get_data();
   void store_data();
   void turn_off();
+
+  float curPressure,curTemp,curHum;
 
  private :
   Adafruit_BME280   bme; // software SPI
   LiquidCrystal_I2C lcd;  // LCD address to 0x20; 16 chars-2 lines display
 
+  void get_data();
   float minval(float *);
   float maxval(float *);
 
   byte** _barGraph;
-  float curPressure,curTemp,curHum;
-  char str_temp[6];
-  char str_hum[6];
-  char str_press[8];
   float Press_rec[nRec];
   float Temp_rec[nRec];
   void createBarGraph(float *);

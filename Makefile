@@ -11,6 +11,8 @@ AVRDUDE_ARD_BAUDRATE = 57600
 ISP_PROG     = avrisp
 AVRDUDE_OPTS = -v
 
+MONITOR_BAUDRATE=115200
+
 #include the Arduino Makefile
 include /usr/local/opt/arduino-mk/Arduino.mk
 
