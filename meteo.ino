@@ -18,19 +18,19 @@
 
 #define BTN 2
 #define MENU_MAX 2
-volatile uint8_t menu=0;
+uint8_t menu=0;
 meteo meteo_device;
 
 #define Nsleeps 450 // Get 40 reccords in 40h
 //#define Nsleeps 7 // Get a reccord every minute
-volatile bool interFlag=true;
+volatile bool interFlag=false;
 void BTNpressed()
 {
 
   static unsigned long last_interrupt_time = 0;
   unsigned long interrupt_time = millis();
-  // If interrupts come faster than 500ms, assume it's a bounce and ignore
-  if (interrupt_time - last_interrupt_time > 500)
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 200)
     {
       interFlag = true;
       return;
@@ -73,8 +73,8 @@ void setup() {
 
 void loop() {
 
-  static uint16_t cur_sleep;
-  static long lasttimeloop;
+  static uint16_t cur_sleep=0;
+  static uint32_t lasttimeloop=0;
 
   //There was a button pressed, process it
   if (interFlag){
@@ -85,9 +85,11 @@ void loop() {
   }
 
   //Wait for 6 sec including the processing
-  //to display the data
-  unsigned long wait_start=millis();
+  //to display the data on the lcd
+  uint32_t wait_start=millis();
   while (millis()-wait_start<6000){
+    // A return in the loop() function restarts to the begining of loop()
+    // indeed, the call to loop() is within a endless for ;; loop in the main
     if (interFlag) return;
   }
 
@@ -98,27 +100,26 @@ void loop() {
   menu=0;
 
   //-- account for loop time the time spent in the main loop
-  // if too much time was spent, do not sleep
-  cur_sleep+= (uint16_t) (millis()-lasttimeloop)/8000;
+  // if too much time was spent, stroe data
+  if (lasttimeloop != 0) cur_sleep+= (uint32_t) (millis()-lasttimeloop)/8000;
   if (cur_sleep>Nsleeps) cur_sleep=Nsleeps;
 
   //-- Go to sleep for the expected nuber of 8sec time
-  for (cur_sleep;cur_sleep<Nsleeps;cur_sleep++){
+  for (uint16_t isleep=cur_sleep;isleep<Nsleeps;isleep++){
     LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
     // get out of here when button is pressed
     // and restart loop()
     if (interFlag) {
       //get the current time
       lasttimeloop=millis();
-      break;
+      return;
     }
   }
 
-  // Store data after the correct amount of sleeps not when the BTN is pressed
-  // Set cur_sleep to restart the whole sleep proccess
-  if (cur_sleep==Nsleeps) {
-    meteo_device.store_data();
-    cur_sleep=0;
-  }
+  // Some time has passed :
+  // Store data after the correct amount of sleeps
+  // Set cur_sleep=0 to restart the whole sleep proccess
+  meteo_device.store_data();
+  cur_sleep=0;
 
 }

@@ -115,6 +115,7 @@ void meteo::print_temp_hist()
   lcd.clear();
   lcd.setCursor(0,0);
 
+  // Create a heading to display min and max values
   char heading[16];
   char str_temp_min[5];
   char str_temp_max[5];
@@ -141,6 +142,7 @@ void meteo::print_pressure_hist()
   lcd.clear();
   lcd.setCursor(0,0);
 
+  // Create a heading to display min and max values
   char heading[16];
   char str_press_min[8];
   char str_press_max[8];
