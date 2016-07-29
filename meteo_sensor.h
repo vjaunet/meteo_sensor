@@ -33,9 +33,9 @@
 #define nCustomChar 8
 #define nRec 40
 
-#define ctrl_hum  B00000001 //Hoversampling=1
-#define ctrl_tp   B00100110 //Toversampling=x8, Poversampling=x8, forced mode
-#define ctrl_conf B10100100  //1 second of standby,No Filter,spi 3wire off
+#define ctrl_humos          B00000001 //Hoversampling=1
+#define ctrl_tos_pos_mode   B00100110 //Toversampling=x1, Poversampling=x1, forced mode
+#define ctrl_conf           B10100100 //1 second of standby,No Filter,spi 3wire off
 /*---------------------------------------------------------------------------*/
 
 class meteo

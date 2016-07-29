@@ -47,11 +47,11 @@ bool meteo::initialize()
     while (1);
   }
 
-  /* Set Stbby time and iir filter*/
+  /* Set bme280 Stbby time and iir filter*/
   bme.set_config(ctrl_conf);
 
   // Print a message to the LCD in the end of setup to control
-  lcd.print("Meteo v0.1");
+  lcd.print("Starting Meteo");
 
   // initialize pressure and temp tables
   float press= bme.readPressure()/100.0F;
@@ -68,25 +68,41 @@ bool meteo::initialize()
 /*-------- Data Acquisition- --------*/
 void meteo::get_data()
 {
-  /*Set the bme to forced mode for next value*/
-  bme.set_control(ctrl_hum,ctrl_tp);
 
-  /*Read data from bme280*/
-  curPressure=bme.readPressure()/100.0F;
-  curTemp = bme.readTemperature()-1.0F;
-  curHum = bme.readHumidity();
+  /*Set the bme to forced mode :
+    it acquires the next values and stores
+    them in the registers */
+  bme.set_control(ctrl_humos,ctrl_tos_pos_mode);
+  delay(10); //ensures the bme has time to sample
+
+  /* Read data from bme280 registers */
+  curPressure= bme.readPressure()/100.0F;
+  curTemp    = bme.readTemperature()-1.0F;
+  curHum     = bme.readHumidity();
 
 }
 
 /*-------- Storing Data in the flash mem --------*/
 void meteo::store_data()
 {
+  // roll in the reccord buffer
   for (uint8_t i=0;i<nRec-1;i++){
     Press_rec[i]= Press_rec[i+1];
     Temp_rec[i] = Temp_rec[i+1];
   }
-  Press_rec[nRec-1]= bme.readPressure()/100.0F;
-  Temp_rec[nRec-1] = bme.readTemperature()-1.0F;;
+
+  //acquire new data
+  get_data();
+
+  Press_rec[nRec-1]= curPressure;
+  //ensure the new measured pressure is physical
+  // Press_rec[nRec-1]= (Press_rec[nRec-1] <  920.0) ?  920.0 : Press_rec[nRec-1];
+  // Press_rec[nRec-1]= (Press_rec[nRec-1] > 1100.0) ? 1100.0 : Press_rec[nRec-1];
+
+  Temp_rec[nRec-1] = curTemp;
+  //ensure the new measured temp is physical
+  // Temp_rec[nRec-1] = (Temp_rec[nRec-1] < -25.0) ? -25.0 : Temp_rec[nRec-1] ;
+  // Temp_rec[nRec-1] = (Temp_rec[nRec-1] > 50.0)  ?  50.0 : Temp_rec[nRec-1] ;
 }
 
 
@@ -105,7 +121,7 @@ void meteo::print_temp_hist()
   dtostrf( minval(Temp_rec), 4, 1, str_temp_min);
   dtostrf( maxval(Temp_rec), 4, 1, str_temp_max);
 
-  sprintf(heading,"T: %s%cC-%s%cC", str_temp_min,(char)223, str_temp_min,(char)223);
+  sprintf(heading,"T: %s%cC-%s%cC", str_temp_min,(char)223, str_temp_max,(char)223);
   lcd.print(heading);
 
   for (uint8_t iChar=0;iChar<nCustomChar;iChar++){
