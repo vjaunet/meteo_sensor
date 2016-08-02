@@ -10,7 +10,6 @@
           -- BME280 + Adafruit BME 280 library
           -- lcd 16x2 display + LcdCrystal Library
           -- LowPower Library to run in sleep mode
-          -- esp8266 for wifi connectivity
 
  ***************************************************************************/
 
