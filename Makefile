@@ -5,13 +5,14 @@ F_CPU          = 16000000L
 MCU            = atmega328p
 
 ARDUINO_LIBS = SPI Wire Adafruit_BME280 LiquidCrystal_I2C LowPower
+#	ESP8266_AT_Arduino_Library SoftwareSerial
 
 PORT=/dev/cu.wchusbserial1420
 AVRDUDE_ARD_BAUDRATE = 57600
 ISP_PROG     = avrisp
 AVRDUDE_OPTS = -v
 
-MONITOR_BAUDRATE=115200
+MONITOR_BAUDRATE=9600
 
 #include the Arduino Makefile
 include /usr/local/opt/arduino-mk/Arduino.mk
