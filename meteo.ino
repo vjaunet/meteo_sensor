@@ -87,12 +87,6 @@ void loop() {
     interFlag=false;
   }
 
-  Serial.print("here");
-
-  //serve the webpage
-  serve_webpage();
-
-
   //Wait for 6 sec including the processing
   //to display the data on the lcd
   uint32_t wait_start=millis();
@@ -101,7 +95,7 @@ void loop() {
     // indeed, the call to loop() is within a endless for ;; loop in the main
     if (interFlag) return;
   }
-  Serial.print("here");
+
   //-- From here, there was no interrupt after the waiting time --
 
   //-- turn off and set next display to menu 0
@@ -113,17 +107,17 @@ void loop() {
   if (lasttimeloop != 0) cur_sleep+= (uint32_t) (millis()-lasttimeloop)/8000;
   if (cur_sleep>Nsleeps) cur_sleep=Nsleeps;
 
-  // //-- Go to sleep for the expected nuber of 8sec time
-  // for (uint16_t isleep=cur_sleep;isleep<Nsleeps;isleep++){
-  //   LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-  //   // get out of here when button is pressed
-  //   // and restart loop()
-  //   if (interFlag) {
-  //     //get the current time
-  //     lasttimeloop=millis();
-  //     return;
-  //   }
-  // }
+  //-- Go to sleep for the expected nuber of 8sec time
+  for (uint16_t isleep=cur_sleep;isleep<Nsleeps;isleep++){
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+    // get out of here when button is pressed
+    // and restart loop()
+    if (interFlag) {
+      //get the current time
+      lasttimeloop=millis();
+      return;
+    }
+  }
 
   // Some time has passed :
   // Store data after the correct amount of sleeps
