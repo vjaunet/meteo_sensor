@@ -1,11 +1,10 @@
 # --- Chinese Nano V3.0 --------------
 
-BOARD_TAG      = nano
+BOARD_TAG      = 328bb
 F_CPU          = 16000000L
 MCU            = atmega328p
 
 ARDUINO_LIBS = SPI Wire Adafruit_BME280 LiquidCrystal_I2C LowPower
-#	ESP8266_AT_Arduino_Library SoftwareSerial
 
 PORT=/dev/cu.wchusbserial1420
 AVRDUDE_ARD_BAUDRATE = 57600
