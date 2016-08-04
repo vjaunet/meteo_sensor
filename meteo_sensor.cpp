@@ -18,7 +18,7 @@
 
 /*------ Constuctors ------*/
 meteo::meteo()
-: bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK), lcd(LCD_I2C_ADDR,16,2)
+: bme(BME_CS), lcd(LCD_I2C_ADDR,16,2)
 {
   // allocate the bargraph table and initialize
   _barGraph=new byte*[nCustomChar];
