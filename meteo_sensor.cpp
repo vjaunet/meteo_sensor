@@ -69,11 +69,14 @@ bool meteo::initialize()
 void meteo::get_data()
 {
 
+  /* if we set the BME in forcde mode, get a new data */
+  if ( ((ctrl_tos_pos_mode | B11) == B10) | ((ctrl_tos_pos_mode | B11) == B01)){
   /*Set the bme to forced mode :
     it acquires the next values and stores
     them in the registers */
-  bme.set_control(ctrl_humos,ctrl_tos_pos_mode);
-  delay(10); //ensures the bme has time to sample
+    bme.set_control(ctrl_humos,ctrl_tos_pos_mode);
+    delay(10); //ensures the bme has time to sample
+  }
 
   /* Read data from bme280 registers */
   curPressure= bme.readPressure()/100.0F;
