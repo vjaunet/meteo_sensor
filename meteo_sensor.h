@@ -29,6 +29,8 @@
 #define BME_CS 10
 #define LCD_I2C_ADDR 0x20
 
+#define BATT_PIN A4
+
 #define nrowGraph 8
 #define nCustomChar 8
 #define nRec 40
@@ -48,11 +50,12 @@ class meteo
   void print_temp_hist();
   void store_data();
   void turn_off();
+  void check_battery();
 
   float curPressure,curTemp,curHum;
 
  private :
-  Adafruit_BME280   bme; // software SPI
+  Adafruit_BME280   bme;  // software SPI
   LiquidCrystal_I2C lcd;  // LCD address to 0x20; 16 chars-2 lines display
 
   void get_data();

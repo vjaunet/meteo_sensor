@@ -42,6 +42,8 @@ void print_menu(){
 
   switch(menu){
   case 0:
+    //first Check battery on button pressed
+    meteo_device.check_battery();
     meteo_device.print_meteo();
     break;
 
@@ -61,7 +63,8 @@ void print_menu(){
 
 void setup() {
 
-  Serial.begin(9600);
+  Serial.begin(115200);
+  Serial.println("Let's try");
 
   /*define Button pin and set it to 1*/
   pinMode(BTN,INPUT_PULLUP);
@@ -69,6 +72,8 @@ void setup() {
 
   /* init the devices */
   meteo_device.initialize();
+
+  Serial.println(meteo_device.curPressure);
 
 }
 

@@ -19,6 +19,7 @@
 /*------ Constuctors ------*/
 meteo::meteo()
 : bme(BME_CS), lcd(LCD_I2C_ADDR,16,2)
+//: bme(), lcd(LCD_I2C_ADDR,16,2)
 {
   // allocate the bargraph table and initialize
   _barGraph=new byte*[nCustomChar];
@@ -35,13 +36,18 @@ meteo::meteo()
 bool meteo::initialize()
 {
 
-  lcd.init(); // initialize the lcd
+   // initialize the lcd
+  lcd.init();
   lcd.clear();
 
   // Light up the LCD.
   lcd.backlight();
 
-  if (!bme.begin()) {
+  /* reset the bme280 */
+  bme.reset();
+  delay(100);
+
+  if (!bme.begin(0x76)) {
     lcd.clear();
     lcd.println("BME280: check wiring");
     while (1);
@@ -49,6 +55,7 @@ bool meteo::initialize()
 
   /* Set bme280 Stbby time and iir filter*/
   bme.set_config(ctrl_conf);
+  delay(100);
 
   // Print a message to the LCD in the end of setup to control
   lcd.print("Starting Meteo");
@@ -60,7 +67,10 @@ bool meteo::initialize()
     Press_rec[i] = press;
     Temp_rec[i] = temp;
   }
-  delay(300);
+  delay(1000);
+
+  // set the LCD off
+  lcd.noBacklight();
 
   return true;
 }
@@ -69,8 +79,8 @@ bool meteo::initialize()
 void meteo::get_data()
 {
 
-  /* if we set the BME in forcde mode, get a new data */
-  if ( ((ctrl_tos_pos_mode | B11) == B10) | ((ctrl_tos_pos_mode | B11) == B01)){
+  /* if we set the BME in forced mode, get a new data */
+  if ( ((ctrl_tos_pos_mode & B11) == B10) | ((ctrl_tos_pos_mode & B11) == B01)){
   /*Set the bme to forced mode :
     it acquires the next values and stores
     them in the registers */
@@ -85,7 +95,7 @@ void meteo::get_data()
 
 }
 
-/*-------- Storing Data in the flash mem --------*/
+/*-------- Storing Data in the flash --------*/
 void meteo::store_data()
 {
   // roll in the reccord buffer
@@ -106,6 +116,7 @@ void meteo::store_data()
   //ensure the new measured temp is physical
   // Temp_rec[nRec-1] = (Temp_rec[nRec-1] < -25.0) ? -25.0 : Temp_rec[nRec-1] ;
   // Temp_rec[nRec-1] = (Temp_rec[nRec-1] > 50.0)  ?  50.0 : Temp_rec[nRec-1] ;
+
 }
 
 
@@ -196,6 +207,42 @@ void meteo::turn_off()
   lcd.noBacklight();
 }
 
+void meteo::check_battery()
+{
+
+
+  // ADC conversion --------------------------------------
+  // For some reason, the analogRead did ont work here
+
+  // ADEN: Set to turn on ADC , by default it is turned off
+  //ADPSx: ADPS2, 1 and 0 set for sampling freq divided by 128
+  ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+  ADMUX = (1<<REFS0) | (1<<MUX1); // ADC input channel set to PC2
+
+  ADCSRA |= (1<<ADSC); // Start conversion
+  while (ADCSRA & (1<<ADSC)); // wait for conversion to complete
+  uint16_t adc_value = ADC; //Store ADC value
+
+  if (adc_value < 3.0/5.*1024)
+    {
+      lcd.clear();
+
+      // Light up the LCD.
+      lcd.backlight();
+
+      //Print Low Battery
+      lcd.setCursor(0,0);
+      lcd.print("..Low Battery..");
+      lcd.setCursor(0,1);
+      lcd.print("V=");
+      char str_volt[6];
+      dtostrf( (float) adc_value/1024*5., 5, 2, str_volt);
+      lcd.print(str_volt);
+      delay(1000);
+    }
+
+  return;
+}
 
 /*-------- Bargraph Creation- --------*/
 void meteo::createBarGraph(float *data)
